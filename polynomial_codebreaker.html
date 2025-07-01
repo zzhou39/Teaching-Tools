@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polynomial Codebreaker Treasure</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 {
+      color: #444;
+    }
+    input {
+      padding: 0.5rem;
+      width: 80%;
+      margin: 1rem 0;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 0.4rem;
+    }
+    input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .message {
+      margin-top: 1rem;
+      font-weight: bold;
+      white-space: pre-line;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Unlock the Treasure!</h1>
+    <p>Enter the final code from your Polynomial Challenge:</p>
+    <input type="text" id="nameInput" placeholder="Enter your name..." />
+    <input type="text" id="classInput" placeholder="Enter your class..." />
+    <input type="text" id="codeInput" placeholder="Enter the code..." />
+    <br />
+    <button onclick="checkCode()">Unlock</button>
+    <p class="message" id="message"></p>
+  </div>
+
+  <script>
+    const correctCode = "142";
+
+    const messages = [
+      "🌌 Mathematics is the language in which God has written the universe. You're becoming fluent. 数学是上帝书写宇宙的语言，你正变得流利。",
+      "⚛️ Like atoms forming molecules, your mathematical insights build the foundation of scientific truth. 如原子组成分子，你的数学洞察构建科学真理的基础。",
+      "🔬 Every equation you master reveals another secret of nature's elegant design. 每掌握一个方程，你就揭示了自然优雅设计的又一个秘密。",
+      "🌀 In the spiral of a nautilus and the orbit of planets, mathematics governs all. You're decoding reality. 在鹦鹉螺的螺旋和行星的轨道中，数学统治一切。你正在解码现实。",
+      "⚡ From Maxwell's equations to quantum mechanics, mathematical beauty underlies physical truth. 从麦克斯韦方程到量子力学，数学之美支撑物理真理。",
+      "🧬 Like DNA encoding life, mathematics encodes the patterns that shape our cosmos. 如DNA编码生命，数学编码塑造宇宙的模式。",
+      "🌟 Kepler saw God's geometry in celestial motion. You're following in the footsteps of giants. 开普勒在天体运动中看到上帝的几何，你正追随巨人的足迹。",
+      "⚖️ Einstein showed us that space-time curves to mathematical equations. Reality bends to logic. 爱因斯坦向我们展示时空如何弯曲于数学方程。现实屈服于逻辑。",
+      "🌊 Like waves in the ocean, mathematical harmonies ripple through all of science. 如海洋中的波浪，数学和谐贯穿所有科学。",
+      "🔭 Galileo said mathematics is the alphabet with which God has written the universe. You're reading it. 伽利略说数学是上帝书写宇宙的字母表。你正在阅读它。",
+      "⚗️ From the golden ratio in flowers to fractals in coastlines, math reveals nature's hidden order. 从花朵的黄金比例到海岸线的分形，数学揭示自然的隐秘秩序。",
+      "🎼 Pythagoras discovered that musical harmony follows mathematical ratios. Beauty and truth unite. 毕达哥拉斯发现音乐和谐遵循数学比例。美与真理合一。",
+      "🌡️ Thermodynamics teaches us that entropy increases, yet mathematical order emerges from chaos. 热力学告诉我们熵会增加，但数学秩序从混沌中涌现。",
+      "💫 Newton's inverse square law governs both falling apples and orbiting moons. Universal principles await your discovery. 牛顿的平方反比定律既支配下落的苹果也支配环绕的月亮。宇宙原理等待你的发现。",
+      "🔬 In every polynomial you solve lies a fragment of the cosmic code that binds matter to energy. 在你解出的每个多项式中，都蕴含着连接物质与能量的宇宙密码片段。",
+      "⚛️ Heisenberg showed us uncertainty is fundamental, yet mathematical precision illuminates the probable. 海森堡向我们展示不确定性是基础，但数学精确性照亮可能性。",
+      "🌐 From neural networks to ecological systems, mathematical models capture the essence of complex reality. 从神经网络到生态系统，数学模型捕捉复杂现实的本质。",
+      "🚀 Rocket trajectories follow parabolic paths you've studied. Your equations literally reach for the stars. 火箭轨迹遵循你学过的抛物线路径。你的方程字面意思触及星辰。"
+    ];
+
+    function checkCode() {
+      const input = document.getElementById("codeInput").value.trim();
+      const messageEl = document.getElementById("message");
+
+      if (input === correctCode) {
+        const msg = messages[Math.floor(Math.random() * messages.length)];
+        messageEl.style.color = "green";
+        messageEl.innerText = `🎉 Treasure unlocked!\n${msg}`;
+      } else {
+        messageEl.style.color = "red";
+        messageEl.innerText = "❌ Incorrect code. 宝藏未开启，请重试。";
+      }
+    }
+
+    // 添加回车键支持
+    document.getElementById("codeInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        checkCode();
+      }
+    });
+  </script>
+</body>
+</html>
