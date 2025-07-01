@@ -115,6 +115,22 @@
         checkCode();
       }
     });
+
+     // 禁止右键
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // 禁止 F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S
+  document.addEventListener('keydown', function (e) {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+      (e.ctrlKey && ['U', 'S'].includes(e.key))
+    ) {
+      e.preventDefault();
+    }
+  });
   </script>
 </body>
 </html>
