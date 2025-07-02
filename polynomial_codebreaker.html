@@ -18,16 +18,29 @@
       overflow: hidden;
     }
 
-    body::before {
-      content: '∫ Σ π ∞ ∆ α β γ √ ≈ ≠ ≥ ≤';
+    body::before,
+    body::after {
+      content: 'π ∞ √ ∑';
       position: absolute;
-      font-size: 8rem;
-      color: rgba(180, 200, 255, 0.08);
-      top: 10%;
-      left: 5%;
+      font-size: 4rem;
+      color: rgba(180, 200, 255, 0.05);
       pointer-events: none;
-      white-space: nowrap;
+      user-select: none;
+      font-family: 'Times New Roman', serif;
     }
+
+    body::before {
+      top: 5%;
+      left: 5%;
+      transform: rotate(-15deg);
+    }
+
+    body::after {
+      bottom: 10%;
+      right: 5%;
+      transform: rotate(15deg);
+    }
+
 
     .container {
       background: white;
