@@ -118,35 +118,45 @@
     ];
 
     function md5(str) {
-      return CryptoJS.MD5(str).toString();
+    return CryptoJS.MD5(str).toString();
+  }
+
+  function checkCode() {
+    const input = document.getElementById("codeInput").value.trim();
+    const inputHash = md5(input);
+    const messageEl = document.getElementById("message");
+
+    if (inputHash === correctHash) {
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      messageEl.style.color = "green";
+      messageEl.innerText = `🎉 Treasure unlocked!\n${msg}`;
+    } else {
+      messageEl.style.color = "red";
+      messageEl.innerText = "❌ Incorrect code. 宝藏未开启，请重试。";
     }
+  }
 
-    function checkCode() {
-      const input = document.getElementById("codeInput").value.trim();
-      const inputHash = md5(input);
-      const messageEl = document.getElementById("message");
-
-      if (inputHash === correctHash) {
-        const msg = messages[Math.floor(Math.random() * messages.length)];
-        messageEl.style.color = "green";
-        messageEl.innerText = `🎉 Treasure unlocked!\n${msg}`;
-      } else {
-        messageEl.style.color = "red";
-        messageEl.innerText = "❌ Incorrect code. 宝藏未开启，请重试。";
-      }
-    }
-
-    // 禁止右键和常见快捷键
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (
-        e.key === 'F12' || (e.ctrlKey && ['u','s','S','U'].includes(e.key)) ||
-        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))
-      ) {
-        e.preventDefault();
+  // 回车键监听绑定在整个文档中，确保任何输入框聚焦时都可以触发
+  document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        checkCode();
       }
     });
-  </script>
+  });
+
+  // 禁止右键和常见快捷键
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && ['u','s','S','U'].includes(e.key)) ||
+      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))
+    ) {
+      e.preventDefault();
+    }
+  });
+</script>
 
   <!-- 引入加密库 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
