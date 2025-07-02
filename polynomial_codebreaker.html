@@ -2,55 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Polynomial Codebreaker Treasure</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f2f2f2;
+      background: linear-gradient(135deg, #dbe9ff, #f3f0ff);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      position: relative;
+      overflow: hidden;
     }
+
+    body::before {
+      content: '∫ Σ π ∞ ∆ α β γ √ ≈ ≠ ≥ ≤';
+      position: absolute;
+      font-size: 8rem;
+      color: rgba(180, 200, 255, 0.08);
+      top: 10%;
+      left: 5%;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
     .container {
       background: white;
       padding: 2rem;
       border-radius: 1rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
       text-align: center;
       max-width: 400px;
+      width: 90%;
     }
+
     h1 {
-      color: #444;
+      color: #4a4a8f;
     }
+
     input {
       padding: 0.5rem;
       width: 80%;
-      margin: 1rem 0;
+      margin: 0.5rem 0;
       font-size: 1rem;
       border: 2px solid #ddd;
       border-radius: 0.4rem;
     }
+
     input:focus {
       outline: none;
-      border-color: #007bff;
+      border-color: #6a89cc;
     }
+
     button {
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      background: #007bff;
+      background: #6a89cc;
       color: white;
       border: none;
       border-radius: 0.4rem;
       cursor: pointer;
+      margin-top: 1rem;
       transition: background-color 0.3s;
     }
+
     button:hover {
-      background: #0056b3;
+      background: #4a69bd;
     }
+
     .message {
       margin-top: 1rem;
       font-weight: bold;
@@ -72,7 +94,7 @@
   </div>
 
   <script>
-    const correctCode = "-4";
+    const correctHash = "0267aaf632e87a63288a08331f22c7c3";
 
     const messages = [
       "🌌 Mathematics is the language in which God has written the universe. You're becoming fluent. 数学是上帝书写宇宙的语言，你正变得流利。",
@@ -95,11 +117,16 @@
       "🚀 Rocket trajectories follow parabolic paths you've studied. Your equations literally reach for the stars. 火箭轨迹遵循你学过的抛物线路径。你的方程字面意思触及星辰。"
     ];
 
+    function md5(str) {
+      return CryptoJS.MD5(str).toString();
+    }
+
     function checkCode() {
       const input = document.getElementById("codeInput").value.trim();
+      const inputHash = md5(input);
       const messageEl = document.getElementById("message");
 
-      if (input === correctCode) {
+      if (inputHash === correctHash) {
         const msg = messages[Math.floor(Math.random() * messages.length)];
         messageEl.style.color = "green";
         messageEl.innerText = `🎉 Treasure unlocked!\n${msg}`;
@@ -109,28 +136,19 @@
       }
     }
 
-    // 添加回车键支持
-    document.getElementById("codeInput").addEventListener("keypress", function(event) {
-      if (event.key === "Enter") {
-        checkCode();
+    // 禁止右键和常见快捷键
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (
+        e.key === 'F12' || (e.ctrlKey && ['u','s','S','U'].includes(e.key)) ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))
+      ) {
+        e.preventDefault();
       }
     });
-
-     // 禁止右键
-  document.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-  });
-
-  // 禁止 F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S
-  document.addEventListener('keydown', function (e) {
-    if (
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
-      (e.ctrlKey && ['U', 'S'].includes(e.key))
-    ) {
-      e.preventDefault();
-    }
-  });
   </script>
+
+  <!-- 引入加密库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </body>
 </html>
