@@ -18,29 +18,35 @@
       overflow: hidden;
     }
 
-    body::before,
-    body::after {
-      content: 'π ∞ √ ∑';
+    .math-corner {
       position: absolute;
-      font-size: 4rem;
-      color: rgba(180, 200, 255, 0.05);
-      pointer-events: none;
-      user-select: none;
+      font-size: 3.5rem;
       font-family: 'Times New Roman', serif;
+      color: rgba(100, 100, 200, 0.15);
+      user-select: none;
+      pointer-events: none;
+      z-index: 0;
     }
 
-    body::before {
-      top: 5%;
-      left: 5%;
-      transform: rotate(-15deg);
+    .top-left {
+      top: 1rem;
+      left: 1rem;
     }
 
-    body::after {
-      bottom: 10%;
-      right: 5%;
-      transform: rotate(15deg);
+    .top-right {
+       top: 1rem;
+       right: 1rem;
     }
 
+    .bottom-left {
+      bottom: 1rem;
+      left: 1rem;
+    }
+
+    .bottom-right {
+      bottom: 1rem;
+      right: 1rem;
+    }
 
     .container {
       background: white;
@@ -50,7 +56,12 @@
       text-align: center;
       max-width: 400px;
       width: 90%;
+      z-index: 1; /* 添加这一行，确保内容浮在背景符号上 */
     }
+    <span class="math-corner top-left">π ∑</span>
+    <span class="math-corner top-right">√ ∞</span>
+    <span class="math-corner bottom-left">α ∆</span>
+    <span class="math-corner bottom-right">β γ</span>
 
     h1 {
       color: #4a4a8f;
