@@ -193,6 +193,11 @@
     const inputHash = md5(input);
     const messageEl = document.getElementById("message");
 
+    if (input === "") {
+      messageEl.style.color = "red";
+      messageEl.innerText = "⚠️ Please enter a code before unlocking.";
+      return;
+    }
     if (inputHash === correctHash) {
       const msg = messages[Math.floor(Math.random() * messages.length)];
       messageEl.style.color = "green";
@@ -203,9 +208,9 @@
     }
   }
 
-  // 回车键监听绑定在整个文档中，确保任何输入框聚焦时都可以触发
   document.addEventListener("DOMContentLoaded", () => {
-    document.addEventListener("keydown", function (event) {
+    const codeInput = document.getElementById("codeInput");
+    codeInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         checkCode();
       }
