@@ -167,7 +167,8 @@
   <script>
     const correctHash = "bec7317b9d5586d90899a67f96b48c7d";
     const statsQuotes = [
-      "🧬 From Bayes' theorem to modern AI: prior knowledge shapes posterior wisdom. 从贝叶斯定理到现代AI：先验知识塑造后验智慧。",
+      "🧬 Like DNA encoding life, mathematics encodes the patterns that shape our cosmos. From Bayes' theorem to modern AI: prior knowledge shapes posterior wisdom. 
+      如DNA编码生命，数学编码塑造宇宙的模式。从贝叶斯定理到现代AI：先验知识塑造后验智慧。"
     ];
 
     function checkPassword() {
