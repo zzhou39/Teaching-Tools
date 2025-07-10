@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Statistical Lock Puzzle</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #38b2ac, #a0eacb);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .math-symbol {
+      position: absolute;
+      font-size: 4rem;
+      color: rgba(255, 255, 255, 0.2); /* 白色半透明 */
+      font-family: 'Cambria Math', 'Times New Roman', serif;
+      user-select: none;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .symbol-top-left-1 {
+      top: 4rem;
+      left: 4rem;
+    }
+
+    .symbol-top-left-2 {
+      top: 15rem;
+      left: 10rem;
+    }
+
+    .symbol-top-left-3 {
+      top: 5rem;
+      left: 40rem;
+    }
+
+    .symbol-top-right-1 {
+      top: 5rem;
+      right: 5rem;
+    }
+
+    .symbol-top-right-2 {
+      top: 10rem;
+      right: 25rem;
+    }
+
+    .symbol-top-right-3 {
+      top: 20rem;
+      right: 10rem;
+    }
+    
+    .symbol-bottom-left-1 {
+      bottom: 5rem;
+      left: 5rem;
+    }
+
+    .symbol-bottom-left-2 {
+      bottom: 6rem;
+      left: 35rem;
+    }
+
+    .symbol-bottom-left-3 {
+      bottom: 20rem;
+      left: 15rem;
+    }
+
+    .symbol-bottom-right-1 {
+      bottom: 15rem;
+      right: 15rem;
+    }
+
+    .symbol-bottom-right-2 {
+      bottom: 5rem;
+      right: 5rem;
+    }
+    
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      z-index: 1; /* 添加这一行，确保内容浮在背景符号上 */
+    }
+    h1 {
+      color: #2a2a2a;
+    }
+    .input-group {
+      display: flex;
+      justify-content: space-between;
+      margin: 1rem 0;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 0.4rem;
+      max-width: 100px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .message {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      white-space: pre-line;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Statistical Code Lock</h1>
+    <p>Enter the full code to unlock the insight!</p>
+    <input type="text" id="nameInput" placeholder="Your name..." />
+    <input type="text" id="classInput" placeholder="Your class..." />
+    <div class="input-group">
+      <input type="text" id="digit1" placeholder="D1" />
+      <input type="text" id="digit2" placeholder="D2" />
+      <input type="text" id="digit3" placeholder="D3" />
+    </div>
+    <button onclick="checkPassword()">Unlock</button>
+    <p class="message" id="message"></p>
+  </div>
+  <!-- 背景统计符号 -->
+  <span class="math-symbol symbol-top-left-1">X~N(μ, σ)</span>
+  <span class="math-symbol symbol-top-left-2">F(X)</span>
+  <span class="math-symbol symbol-top-left-3">λ</span>
+  <span class="math-symbol symbol-top-right-1">Σ</span>
+  <span class="math-symbol symbol-top-right-2">χ²</span>
+  <span class="math-symbol symbol-top-right-3">Po</span>
+  <span class="math-symbol symbol-bottom-left-1">ZZC</span>
+  <span class="math-symbol symbol-bottom-left-2">E(X)</span>
+  <span class="math-symbol symbol-bottom-left-3">p.d.f</span>
+  <span class="math-symbol symbol-bottom-right-1">G(t)</span>
+  <span class="math-symbol symbol-bottom-right-2">P(A)+P(A')</span>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+  <script>
+    const correctHash = "bec7317b9d5586d90899a67f96b48c7d";
+    const statsQuotes = [
+      "📊 Statistics reveals the hidden architecture of randomness. You're its architect now. 统计学揭示随机性的隐秘架构，你现在就是它的建筑师。",
+      "⚗️ Like Mendel's peas, every sample carries the DNA of its population. Decode with care. 如孟德尔的豌豆，每个样本都携带总体的基因。请细心解码。",
+      "🌊 The Central Limit Theorem: nature's most elegant convergence to normality. 中心极限定理：自然界向正态分布的最优雅收敛。",
+      "🔬 Galton saw regression to the mean in human height. You see patterns in chaos itself. 高尔顿在人类身高中看到回归均值，你在混沌中看到模式。",
+      "⚡ Fisher's p-value revolution: quantifying doubt to illuminate truth. 费舍尔的p值革命：量化疑虑以照亮真理。",
+      "🧬 From Bayes' theorem to modern AI: prior knowledge shapes posterior wisdom. 从贝叶斯定理到现代AI：先验知识塑造后验智慧。",
+      "🌌 In the cosmic dance of particles, statistical mechanics reveals universal order. 在粒子的宇宙舞蹈中，统计力学揭示宇宙秩序。",
+      "📐 Pearson's correlation coefficient: measuring the music between variables. 皮尔逊相关系数：测量变量间的音乐律动。",
+      "🎯 Standard deviation: the heartbeat of variability, the pulse of uncertainty. 标准差：变异性的心跳，不确定性的脉搏。",
+      "⚖️ The law of large numbers: individual chaos yields collective predictability. 大数定律：个体混沌产生集体可预测性。",
+      "🔍 Hypothesis testing: the scientific method crystallized into mathematical rigor. 假设检验：科学方法结晶为数学严谨性。",
+      "🌡️ Maxwell-Boltzmann distribution: molecular motion obeying statistical law. 麦克斯韦-玻尔兹曼分布：分子运动服从统计定律。",
+      "💫 Bootstrap sampling: pulling yourself up by statistical bootstraps, literally. 自举抽样：字面意义上的统计学自我提升。",
+      "⚛️ Quantum mechanics taught us uncertainty is fundamental. Statistics makes it useful. 量子力学教导我们不确定性是根本，统计学使其有用。",
+      "🧭 Confidence intervals: charting courses through the ocean of uncertainty. 置信区间：在不确定性海洋中绘制航线。",
+      "🌀 From Brownian motion to financial markets: stochastic processes govern reality. 从布朗运动到金融市场：随机过程主宰现实。",
+      "🔭 Like Kepler's laws emerging from Tycho's observations, patterns emerge from data. 如开普勒定律从第谷观测中涌现，模式从数据中显现。",
+      "💎 The beauty of statistical inference: extracting infinite truth from finite samples. 统计推断之美：从有限样本中提取无限真理。"
+    ];
+
+    function checkPassword() {
+      const d1 = document.getElementById("digit1").value.trim();
+      const d2 = document.getElementById("digit2").value.trim();
+      const d3 = document.getElementById("digit3").value.trim();
+      const messageEl = document.getElementById("message");
+      if (!d1 || !d2 || !d3) {
+        messageEl.style.color = "orange";
+        messageEl.innerText = "⚠️ Please enter the complete password before unlocking.";
+        return; // 提前结束函数
+      }
+      const fullCode = `${d1}|${d2}|${d3}`;
+      const hashedInput = CryptoJS.MD5(fullCode).toString();
+
+      if (hashedInput === correctHash) {
+        const quote = statsQuotes[Math.floor(Math.random() * statsQuotes.length)];
+        messageEl.style.color = "green";
+        messageEl.innerText = `✨ Code accepted! Here's your treasure:\n${quote}`;
+      } else {
+        messageEl.style.color = "red";
+        messageEl.innerText = "❌ Incorrect code. The data doesn't lie - try again!";
+      }
+    }
+    // 添加回车键支持
+    document.querySelectorAll('input').forEach((input, index) => {
+      input.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          checkPassword();
+        }
+      });
+      
+      // 添加Tab键跳转到下一个输入框
+      input.addEventListener('keydown', function(event) {
+        if (event.key === 'Tab' && index < 3) {
+          // Tab键的默认行为已经会跳转，这里只是为了保持一致性
+          return;
+        }
+        // 可以用Ctrl+Enter或者只是Tab来跳转，移除自动跳转
+      });
+    });
+
+     // 禁止右键
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // 禁止 F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S
+  document.addEventListener('keydown', function (e) {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+      (e.ctrlKey && ['U', 'S'].includes(e.key))
+    ) {
+      e.preventDefault();
+    }
+  });
+    
+  </script>
+</body>
+</html>
