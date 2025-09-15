@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sampling Distribution & CI Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+    .chart-container {
+      width: 45%;
+      min-width: 400px;
+    }
+    canvas {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .info {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .formula {
+      margin-top: 8px;
+      padding: 8px;
+      background: #eef;
+      border-left: 4px solid #66f;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sampling Distribution & Confidence Interval Simulator</h1>
+
+  <label>Population Mean (μ): <input id="popMean" type="number" value="50"></label>
+  <label>Population SD (σ): <input id="popSD" type="number" value="10"></label>
+  <label>Sample Size (n): <input id="sampleSize" type="number" value="30"></label>
+  <label>Number of Samples: <input id="numSamples" type="number" value="500"></label>
+  <label>Confidence Level: <input id="confLevel" type="number" value="0.95" step="0.01"></label>
+  <button onclick="simulate()">Run Simulation</button>
+
+  <div class="container">
+    <div class="chart-container">
+      <h3>Population Distribution</h3>
+      <canvas id="populationChart"></canvas>
+      <div class="info" id="populationInfo"></div>
+    </div>
+    <div class="chart-container">
+      <h3>Sampling Distribution of Sample Means</h3>
+      <canvas id="samplingChart"></canvas>
+      <div class="info" id="samplingInfo"></div>
+      <div class="formula">
+        μ<sub>\(\bar{X}\)</sub> = μ <br>
+        Var(\(\bar{X}\)) = σ² / n
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-container" style="margin-top:30px; width:90%">
+    <h3>Confidence Intervals (showing which contain μ)</h3>
+    <canvas id="ciChart"></canvas>
+  </div>
+
+  <script>
+    let charts = {};
+
+    function createChart(canvasId, label, data, color) {
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
+      charts[canvasId] = new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: label,
+            data: data.values,
+            backgroundColor: color
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function simulate() {
+      const mu = parseFloat(document.getElementById('popMean').value);
+      const sigma = parseFloat(document.getElementById('popSD').value);
+      const n = parseInt(document.getElementById('sampleSize').value);
+      const numSamples = parseInt(document.getElementById('numSamples').value);
+      const confLevel = parseFloat(document.getElementById('confLevel').value);
+
+      // Generate population distribution (Normal approx)
+      let population = [];
+      for (let i = 0; i < 100000; i++) {
+        let val = mu + sigma * normalRandom();
+        population.push(val);
+      }
+
+      // Histogram for population
+      let popHist = histogram(population, 20);
+      createChart('populationChart', 'Population', popHist, 'rgba(255,99,132,0.5)');
+
+      // Show population mean & variance
+      const popMean = mean(population).toFixed(2);
+      const popVar = variance(population).toFixed(2);
+      document.getElementById('populationInfo').innerHTML =
+        `<b>Population:</b> Mean = ${popMean}, Variance = ${popVar}`;
+
+      // Sampling distribution of sample means
+      let sampleMeans = [];
+      for (let i = 0; i < numSamples; i++) {
+        let sample = [];
+        for (let j = 0; j < n; j++) {
+          sample.push(mu + sigma * normalRandom());
+        }
+        const meanVal = sample.reduce((a, b) => a + b, 0) / n;
+        sampleMeans.push(meanVal);
+      }
+      let sampHist = histogram(sampleMeans, 20);
+      createChart('samplingChart', 'Sample Means', sampHist, 'rgba(54,162,235,0.5)');
+
+      // Show mean & variance info
+      const sampleMeanMean = mean(sampleMeans).toFixed(2);
+      const sampleMeanVar = variance(sampleMeans).toFixed(2);
+      document.getElementById('samplingInfo').innerHTML =
+        `<b>Observed:</b> Mean = ${sampleMeanMean}, Variance = ${sampleMeanVar}<br>
+         <b>Theoretical:</b> Mean = ${mu}, Variance = ${(sigma*sigma/n).toFixed(2)}`;
+
+      // Confidence Intervals
+      const z = inverseNormal(1 - (1 - confLevel) / 2);
+      let ciData = [];
+      for (let i = 0; i < numSamples; i++) {
+        let se = sigma / Math.sqrt(n);
+        let lower = sampleMeans[i] - z * se;
+        let upper = sampleMeans[i] + z * se;
+        ciData.push({ x: i, y: sampleMeans[i], lower: lower, upper: upper, contains: (lower <= mu && mu <= upper) });
+      }
+      createCIChart(ciData, mu);
+    }
+
+    function createCIChart(ciData, mu) {
+      if (charts['ciChart']) charts['ciChart'].destroy();
+      charts['ciChart'] = new Chart(document.getElementById('ciChart'), {
+        type: 'scatter',
+        data: {
+          datasets: ciData.map((d, i) => ({
+            label: i,
+            data: [{x: d.x, y: d.y}],
+            backgroundColor: d.contains ? 'rgba(0,200,0,0.6)' : 'rgba(200,0,0,0.6)',
+            showLine: true,
+            borderColor: d.contains ? 'green' : 'red',
+            borderWidth: 1,
+            pointRadius: 3,
+            pointHoverRadius: 4,
+            parsing: false
+          }))
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: 'Sample Index' } },
+            y: { title: { display: true, text: 'Mean Value' } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // Helper functions
+    function normalRandom() {
+      let u = 0, v = 0;
+      while(u === 0) u = Math.random();
+      while(v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    function histogram(data, bins) {
+      let min = Math.min(...data), max = Math.max(...data);
+      let step = (max - min) / bins;
+      let counts = new Array(bins).fill(0);
+      data.forEach(v => {
+        let idx = Math.min(bins - 1, Math.floor((v - min) / step));
+        counts[idx]++;
+      });
+      return { labels: counts.map((_, i) => (min + i * step).toFixed(1)), values: counts };
+    }
+
+    function mean(arr) {
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    function variance(arr) {
+      const m = mean(arr);
+      return arr.reduce((a, b) => a + (b - m) ** 2, 0) / (arr.length - 1);
+    }
+
+    function inverseNormal(p) {
+      // Approximation (Beasley-Springer/Moro)
+      const a = [2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637];
+      const b = [-8.47351093090, 23.08336743743, -21.06224101826, 3.13082909833];
+      const c = [0.3374754822726147, 0.9761690190917186,
+                 0.1607979714918209, 0.0276438810333863,
+                 0.0038405729373609, 0.0003951896511919,
+                 0.0000321767881768, 0.0000002888167364,
+                 0.0000003960315187];
+      if(p < 0 || p > 1) return NaN;
+      if(p === 0) return -Infinity;
+      if(p === 1) return Infinity;
+      let y = p - 0.5;
+      if(Math.abs(y) < 0.42) {
+        let r = y * y;
+        let num = a[0] + (a[1] + (a[2] + a[3] * r) * r) * r;
+        let den = 1 + (b[0] + (b[1] + (b[2] + b[3] * r) * r) * r);
+        return y * num / den;
+      } else {
+        let r = p;
+        if(y > 0) r = 1 - p;
+        r = Math.log(-Math.log(r));
+        let val = c[0] + r * (c[1] + r * (c[2] + r * (c[3] + r * (c[4] + r * (c[5] + r * (c[6] + r * (c[7] + r * c[8])))))));
+        return y < 0 ? -val : val;
+      }
+    }
+  </script>
+</body>
+</html>
