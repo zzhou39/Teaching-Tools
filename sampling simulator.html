@@ -65,6 +65,16 @@
 
     <label>Sample Size (n): <input type="number" id="sampleSize" value="30" min="1"></label><br>
     <label>Number of Samples: <input type="number" id="numSamples" value="500" min="10"></label><br>
+
+    <label>Animation:
+      <select id="animationSelect">
+        <option value="none">None</option>
+        <option value="mean">Sample Mean Animation</option>
+        <option value="variance">Sample Variance Animation</option>
+        <option value="both">Mean + Variance Animation</option>
+      </select>
+    </label><br>
+
     <button onclick="runSimulation()">Run Simulation</button>
   </div>
 
@@ -85,6 +95,16 @@
       <h3>Confidence Interval Simulation</h3>
       <canvas id="ciChart"></canvas>
       <div class="stats" id="ciStats"></div>
+    </div>
+
+    <div class="card" id="meanAnimCard" style="display:none;">
+      <h3>Sample Mean Animation</h3>
+      <canvas id="meanAnimChart"></canvas>
+    </div>
+
+    <div class="card" id="varAnimCard" style="display:none;">
+      <h3>Sample Variance Animation</h3>
+      <canvas id="varAnimChart"></canvas>
     </div>
   </div>
 
@@ -117,13 +137,14 @@
     }
 
     let populationData = [];
-    let populationChart, samplingChart, ciChart;
+    let populationChart, samplingChart, ciChart, meanAnimChart, varAnimChart;
 
-    function runSimulation() {
+    async function runSimulation() {
       let n = parseInt(document.getElementById("sampleSize").value);
       let numSamples = parseInt(document.getElementById("numSamples").value);
       let showSampling = document.getElementById("showSampling").checked;
       let showCI = document.getElementById("showCI").checked;
+      let animChoice = document.getElementById("animationSelect").value;
       let selectedPop = document.getElementById("populationSelect").value;
 
       // Define population scenarios
@@ -176,7 +197,7 @@
         let bins2 = 40;
         let minX2 = Math.min(...sampleMeans), maxX2 = Math.max(...sampleMeans);
         let step2 = (maxX2-minX2)/bins2;
-        let binLabels2 = Array.from({length:bins2},(_,i)=>(minX2+i*step2).toFixed(2));
+        let binLabels2 = Array.from({length:bins2},(_,i) => (minX2+i*step2).toFixed(2));
         let smCounts = new Array(bins2).fill(0);
         sampleMeans.forEach(x=>{
           let idx = Math.floor((x-minX2)/step2);
@@ -248,6 +269,62 @@
           `${containsCount}/50 CIs contain the true mean (${trueMean.toFixed(2)})`;
       } else {
         document.getElementById("ciCard").style.display="none";
+      }
+
+      // ------------------------
+      // Animation Section
+      // ------------------------
+      document.getElementById("meanAnimCard").style.display = (animChoice==="mean"||animChoice==="both")?"block":"none";
+      document.getElementById("varAnimCard").style.display = (animChoice==="variance"||animChoice==="both")?"block":"none";
+
+      if (animChoice!=="none") {
+        let ctxMean = document.getElementById('meanAnimChart').getContext('2d');
+        if (meanAnimChart) meanAnimChart.destroy();
+        meanAnimChart = new Chart(ctxMean, {
+          type:'line',
+          data:{labels:[],datasets:[
+            {label:'Average Sample Mean',data:[],borderColor:'green',fill:false},
+            {label:`Population Mean (${meanPop})`,data:[],borderColor:'orange',borderDash:[5,5],fill:false,pointRadius:0}
+          ]},
+          options:{animation:false,scales:{y:{title:{display:true,text:'Mean'}}}}
+        });
+
+        let ctxVar = document.getElementById('varAnimChart').getContext('2d');
+        if (varAnimChart) varAnimChart.destroy();
+        varAnimChart = new Chart(ctxVar, {
+          type:'line',
+          data:{labels:[],datasets:[
+            {label:'Average Sample Variance',data:[],borderColor:'blue',fill:false},
+            {label:`Population Variance (${popVar})`,data:[],borderColor:'red',borderDash:[5,5],fill:false,pointRadius:0}
+          ]},
+          options:{animation:false,scales:{y:{title:{display:true,text:'Variance'}}}}
+        });
+
+        let cumulativeMean=0, cumulativeVar=0;
+
+        for (let i=1;i<=numSamples;i++){
+          let samp = sample(populationData,n);
+          let m = mean(samp);
+          let v = variance(samp);
+          cumulativeMean+=m;
+          cumulativeVar+=v;
+          let avgMean=cumulativeMean/i;
+          let avgVar=cumulativeVar/i;
+
+          if (animChoice==="mean"||animChoice==="both") {
+            meanAnimChart.data.labels.push(i);
+            meanAnimChart.data.datasets[0].data.push(avgMean);
+            meanAnimChart.data.datasets[1].data.push(meanPop);
+            meanAnimChart.update();
+          }
+          if (animChoice==="variance"||animChoice==="both") {
+            varAnimChart.data.labels.push(i);
+            varAnimChart.data.datasets[0].data.push(avgVar);
+            varAnimChart.data.datasets[1].data.push(popVar);
+            varAnimChart.update();
+          }
+          if (i<200) await new Promise(r=>setTimeout(r,15));
+        }
       }
     }
 
