@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binomial–Poisson–Normal Relationship Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #fafafa;
+    }
+    label {
+      display: block;
+      margin-top: 6px;
+    }
+    button {
+      margin: 5px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #1565c0; }
+    h2 { color: #1976d2; }
+    #explanation {
+      margin-top: 10px;
+      background: #e3f2fd;
+      padding: 10px;
+      border-radius: 8px;
+      width: fit-content;
+    }
+  </style>
+</head>
+<body>
+  <h2>📊 Binomial – Poisson – Normal Relationship Simulator</h2>
+  <p>Visualize how Binomial approximates Poisson, and how both approximate the Normal distribution.</p>
+
+  <label>n (number of trials): <input type="number" id="n" value="100"></label>
+  <label>p (probability of success): <input type="number" step="0.01" id="p" value="0.05"></label>
+
+  <label><input type="checkbox" id="showBinomial" checked> Show Binomial</label>
+  <label><input type="checkbox" id="showPoisson" checked> Show Poisson</label>
+  <label><input type="checkbox" id="showNormal" checked> Show Normal</label>
+  <label><input type="checkbox" id="autoUpdate" checked> Auto-update</label>
+
+  <button onclick="simulate()">Simulate</button>
+  <button onclick="animateBinomialToPoisson()">🎞️ Binomial → Poisson</button>
+  <button onclick="animateBinomialToNormal()">🎞️ Binomial → Normal</button>
+  <button onclick="animatePoissonToNormal()">🎞️ Poisson → Normal</button>
+  <button onclick="generateSamples()">🎲 Generate Samples</button>
+
+  <p><strong>λ (lambda)</strong>: <span id="lambdaVal"></span> | <strong>μ (mean)</strong>: <span id="muVal"></span> | <strong>σ</strong>: <span id="sigmaVal"></span> | <strong>σ²</strong>: <span id="varianceVal"></span></p>
+  <p id="explanation">Ready to start!</p>
+
+  <canvas id="chart" width="800" height="400"></canvas>
+
+  <script>
+    let animationInterval;
+
+    function logFactorial(k) {
+      if (k < 2) return 0;
+      return k * Math.log(k) - k + 0.5 * Math.log(2 * Math.PI * k);
+    }
+
+    function binomialPMF(n, p, k) {
+      const logComb = logFactorial(n) - logFactorial(k) - logFactorial(n - k);
+      const logProb = k * Math.log(p) + (n - k) * Math.log(1 - p);
+      return Math.exp(logComb + logProb);
+    }
+
+    function poissonPMF(lambda, k) {
+      return Math.pow(lambda, k) * Math.exp(-lambda) / factorial(k);
+    }
+
+    function normalPDF(mu, sigma, x) {
+      return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+    }
+
+    function factorial(k) {
+      if (k === 0) return 1;
+      let prod = 1;
+      for (let i = 1; i <= k; i++) prod *= i;
+      return prod;
+    }
+
+    function updateChart(n, p, showBinomial, showPoisson, showNormal, samples = []) {
+      const lambda = n * p;
+      const mu = lambda;
+      const sigma = Math.sqrt(n * p * (1 - p));
+      const variance = sigma * sigma;
+
+      document.getElementById("lambdaVal").textContent = lambda.toFixed(3);
+      document.getElementById("muVal").textContent = mu.toFixed(3);
+      document.getElementById("sigmaVal").textContent = sigma.toFixed(3);
+      document.getElementById("varianceVal").textContent = variance.toFixed(3);
+
+      const minK = Math.max(0, Math.floor(mu - 4 * sigma));
+      const maxK = Math.min(n, Math.ceil(mu + 4 * sigma));
+      const labels = Array.from({ length: maxK - minK + 1 }, (_, i) => i + minK);
+      const datasets = [];
+
+      if (showBinomial) {
+        const binomial = labels.map(k => binomialPMF(n, p, k));
+        datasets.push({ label: 'Binomial', data: binomial, borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.1)', fill: true });
+      }
+      if (showPoisson) {
+        const poisson = labels.map(k => poissonPMF(lambda, k));
+        datasets.push({ label: 'Poisson', data: poisson, borderColor: 'green', backgroundColor: 'rgba(0,255,0,0.1)', fill: true });
+      }
+      if (showNormal) {
+        const normal = labels.map(k => normalPDF(mu, sigma, k));
+        datasets.push({ label: 'Normal', data: normal, borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.1)', fill: true });
+      }
+
+      if (samples.length > 0) {
+        const freq = labels.map(k => samples.filter(x => x === k).length / samples.length);
+        datasets.push({ label: 'Sample Histogram', data: freq, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.3)', fill: true });
+      }
+
+      if (window.chartInstance) {
+        window.chartInstance.data.labels = labels;
+        window.chartInstance.data.datasets = datasets;
+        window.chartInstance.update();
+      } else {
+        const ctx = document.getElementById("chart").getContext("2d");
+        window.chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: { labels: labels, datasets: datasets },
+          options: {
+            responsive: true,
+            animation: { duration: 300, easing: 'easeOutCubic' },
+            scales: {
+              y: { beginAtZero: true },
+              x: { title: { display: true, text: 'k (number of events)' } }
+            }
+          }
+        });
+      }
+    }
+
+    function simulate() {
+      const n = parseInt(document.getElementById("n").value);
+      const p = parseFloat(document.getElementById("p").value);
+      const showBinomial = document.getElementById("showBinomial").checked;
+      const showPoisson = document.getElementById("showPoisson").checked;
+      const showNormal = document.getElementById("showNormal").checked;
+      updateChart(n, p, showBinomial, showPoisson, showNormal);
+      document.getElementById("explanation").innerText = "Simulation updated with new parameters.";
+    }
+
+    ["n", "p"].forEach(id => {
+      document.getElementById(id).addEventListener("input", () => {
+        if (document.getElementById("autoUpdate").checked) simulate();
+      });
+    });
+
+    function animateBinomialToPoisson() {
+      clearInterval(animationInterval);
+      document.getElementById("explanation").innerText = "As n → ∞ and p → 0 with np = λ constant, Binomial approaches Poisson.";
+      let n = 10;
+      animationInterval = setInterval(() => {
+        if (n > 200) return clearInterval(animationInterval);
+        const p = 5 / n;
+        document.getElementById("n").value = n;
+        document.getElementById("p").value = p.toFixed(4);
+        updateChart(n, p, true, true, false);
+        n += 10;
+      }, 300);
+    }
+
+    function animateBinomialToNormal() {
+      clearInterval(animationInterval);
+      document.getElementById("explanation").innerText = "As n increases with moderate p (not too small or large), Binomial approaches Normal.";
+      let n = 10;
+      animationInterval = setInterval(() => {
+        if (n > 200) return clearInterval(animationInterval);
+        const p = 0.5;
+        document.getElementById("n").value = n;
+        document.getElementById("p").value = p;
+        updateChart(n, p, true, false, true);
+        n += 10;
+      }, 300);
+    }
+
+    function animatePoissonToNormal() {
+      clearInterval(animationInterval);
+      document.getElementById("explanation").innerText = "As λ increases, Poisson becomes more symmetric and approaches Normal.";
+      let lambda = 2;
+      animationInterval = setInterval(() => {
+        if (lambda > 60) return clearInterval(animationInterval);
+        const n = Math.round(lambda * 10);
+        const p = lambda / n;
+        document.getElementById("n").value = n;
+        document.getElementById("p").value = p.toFixed(4);
+        updateChart(n, p, false, true, true);
+        lambda += 3;
+      }, 300);
+    }
+
+    function generateSamples() {
+      const n = parseInt(document.getElementById("n").value);
+      const p = parseFloat(document.getElementById("p").value);
+      const samples = Array.from({ length: 5000 }, () => {
+        let successes = 0;
+        for (let i = 0; i < n; i++) if (Math.random() < p) successes++;
+        return successes;
+      });
+      updateChart(n, p, true, true, true, samples);
+      document.getElementById("explanation").innerText = "Generated 5000 Binomial samples to compare with theoretical curves.";
+    }
+  </script>
+</body>
+</html>
